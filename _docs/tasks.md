@@ -478,6 +478,15 @@ timedelta(hours=2)` module constant (for #12/#17). Migration
 Define items a user can redeem points for. Background:
 `architecture.md` §3 (`store` app), §4.
 
+### Status
+
+**Done.** New `store` app in `INSTALLED_APPS`. `Perk` = `title` /
+`description` (blank) / `point_cost` (`PositiveIntegerField` +
+`MinValueValidator(1)`) / `active` (default `True`); `__str__` → title,
+`Meta.ordering = ["title"]`. `PerkAdmin` lists `title` / `point_cost` /
+`active` with `active` list-editable. Migration `0001_initial`. Covered
+by `tests/test_perk.py`; `uv run pytest` green (66 passed).
+
 ### Acceptance criteria
 
 - [ ] A new `store` app exists and is in `INSTALLED_APPS`.
