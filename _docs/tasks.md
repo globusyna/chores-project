@@ -273,6 +273,16 @@ A reusable way to restrict a view to parent accounts. Background:
 `architecture.md` §3 (the `accounts` app owns permission helpers), §6,
 §11.
 
+### Status
+
+**Done.** `accounts/permissions.py`: `parent_required` decorator built on
+`login_required` + `PermissionDenied` (anonymous → `LOGIN_URL` redirect,
+authed non-parent / no-Profile → 403, parent → through). Per the open
+decision, a symmetric `child_required` is added alongside, plus
+`ParentRequiredMixin` / `ChildRequiredMixin` for CBVs. Module docstring
+carries the usage snippet. Covered by `tests/test_permissions.py`;
+`uv run pytest` green (39 passed).
+
 ### Acceptance criteria
 
 - [ ] `parent_required` lives in `accounts` (e.g.
