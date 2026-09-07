@@ -1000,6 +1000,20 @@ Return unfinished claimed chores to the board once the claim window has
 passed — both via a cron command and lazily when the board is viewed.
 Background: `architecture.md` §8, §14.
 
+### Status
+
+**Done.** Shared revert = `Bounty.objects.release_expired()`
+(`BountyQuerySet`): CLAIMED + `claim_expires_at <= now` → OPEN with claim
+fields cleared, in one `transaction.atomic()`, returns the count;
+`== now` counts as expired; PENDING_REVIEW rows untouched.
+`chores/management/commands/sweep_expired_claims.py` (`BaseCommand`,
+docstring gives the ~5-min cron cadence) calls it and prints the count;
+safe no-op / idempotent. The board view (#11) calls it before rendering;
+the submit view (#13) now uses it too (the `_revert_expired_claim`
+stopgap is removed). No migration (manager-only change). Covered by
+`tests/test_sweep_expired_claims.py` (`call_command` + test client);
+`uv run pytest` green (129 passed).
+
 ### Acceptance criteria
 
 - [ ] `chores/management/commands/sweep_expired_claims.py`: finds every

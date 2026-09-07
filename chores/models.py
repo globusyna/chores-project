@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from .exceptions import InvalidTransition
@@ -30,6 +30,30 @@ class ChoreTemplate(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class BountyQuerySet(models.QuerySet):
+    def release_expired(self):
+        """Return every expired-but-still-CLAIMED bounty in this queryset to
+        OPEN, clearing the claim fields (tasks.md #17). No rejection, no
+        penalty (architecture.md §8). ``claim_expires_at == now`` counts as
+        expired. Returns the number of rows reverted.
+
+        The single shared revert path -- used by both the
+        ``sweep_expired_claims`` command and the board view.
+        """
+        now = timezone.now()
+        with transaction.atomic():
+            return self.filter(
+                status=Bounty.Status.CLAIMED,
+                claim_expires_at__isnull=False,
+                claim_expires_at__lte=now,
+            ).update(
+                status=Bounty.Status.OPEN,
+                claimed_by=None,
+                claimed_at=None,
+                claim_expires_at=None,
+            )
 
 
 class Bounty(models.Model):
@@ -90,6 +114,8 @@ class Bounty(models.Model):
         related_name="created_bounties",
     )
     created_at = models.DateTimeField(default=timezone.now, editable=False)
+
+    objects = BountyQuerySet.as_manager()
 
     class Meta:
         ordering = ["-created_at", "-id"]

@@ -40,6 +40,8 @@ def board(request):
     Display only — no claim/submit/review actions (those are #12–#14, which
     re-render ``dashboard/_bounty_row.html``).
     """
+    # Lazy expiry revert so the board is correct between cron sweeps (#17).
+    Bounty.objects.release_expired()
     bounties = (
         Bounty.objects.exclude(status=Bounty.Status.APPROVED)
         .select_related("claimed_by")
@@ -74,21 +76,6 @@ def claim_bounty(request, pk):
     return _render_row(request, bounty)
 
 
-def _revert_expired_claim(bounty):
-    """Return an expired-but-unswept claim to the board.
-
-    TODO(#17): replace with the shared ``Bounty.objects.release_expired()``
-    manager method once the claim-expiry sweep lands.
-    """
-    bounty.status = Bounty.Status.OPEN
-    bounty.claimed_by = None
-    bounty.claimed_at = None
-    bounty.claim_expires_at = None
-    bounty.save(
-        update_fields=["status", "claimed_by", "claimed_at", "claim_expires_at"]
-    )
-
-
 @login_required
 @require_POST
 def submit_bounty(request, pk):
@@ -101,7 +88,8 @@ def submit_bounty(request, pk):
     bounty = get_object_or_404(Bounty, pk=pk)
 
     if bounty.is_claim_expired:
-        _revert_expired_claim(bounty)
+        Bounty.objects.filter(pk=bounty.pk).release_expired()
+        bounty.refresh_from_db()
         return _render_row(request, bounty, status=409)
 
     if (
