@@ -935,6 +935,19 @@ pytest` green (120 passed).
 Automatically repopulate the board from active chore templates, intended
 to run weekly via cron. Background: `architecture.md` §8.
 
+### Status
+
+**Done.** `chores/management/commands/reset_weekly_board.py`
+(`BaseCommand`). One run spawns one OPEN `Bounty` per `active=True`
+`ChoreTemplate` (`title` / `description` / `default_point_value` copied,
+`source_template` set, `created_by=None`) inside one
+`transaction.atomic()`, then writes the count to stdout. Inactive
+templates skipped; no active templates → nothing created, clean exit.
+Per the open decision each run spawns unconditionally (docstring states
+the weekly Sunday-00:00 cron cadence and the repeat semantics). Covered
+by `tests/test_reset_weekly_board.py` (via `call_command`); `uv run
+pytest` green (124 passed).
+
 ### Acceptance criteria
 
 - [ ] `chores/management/commands/reset_weekly_board.py` (a
