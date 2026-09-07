@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'accounts',
     'chores',
     'store',
+    'ledger',
     'dashboard',
 ]
 

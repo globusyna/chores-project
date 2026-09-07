@@ -24,6 +24,9 @@ class Profile(models.Model):
         choices=Role.choices,
         default=Role.CHILD,
     )
+    # Denormalised cache of the point ledger sum (tasks.md #10). Only
+    # ledger.services.record_transaction may write this.
+    points_balance = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.user} ({self.get_role_display()})"

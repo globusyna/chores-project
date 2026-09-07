@@ -587,6 +587,24 @@ Record every point award / spend as an immutable, auditable entry, and
 keep a cheap cached balance that always equals the ledger sum.
 Background: `architecture.md` §3 (`ledger` app), §4, §10.
 
+### Status
+
+**Done.** New `ledger` app. `PointTransaction`: `user` FK, signed
+`amount`, `reason` `TextChoices` (BOUNTY_AWARD / PERK_DEBIT /
+ADJUSTMENT), string-ref FKs `related_bounty` / `related_purchase`
+(`SET_NULL`), `created_at` (`auto_now_add`); `save()` on an existing row
+raises `LedgerError` (append-only); read-only admin (no add/change/
+delete). `Profile.points_balance` `IntegerField(default=0)` added
+(migration `accounts/0003`). `ledger.services.record_transaction(user,
+amount, reason, *, related_bounty=None, related_purchase=None)` inserts
+the row and bumps `points_balance` with `F()` in one
+`transaction.atomic()`, returns the txn, rejects `amount == 0`. Balance
+== per-user ledger sum is covered. Also marked `points_balance`
+read-only in the accounts admin (it's ledger-owned) — a one-line safety
+tweak outside the stated `ledger/`-only scope, caused by the new field.
+Migrations `ledger/0001`, `accounts/0003`. Covered by
+`tests/test_ledger.py`; `uv run pytest` green (79 passed).
+
 ### Acceptance criteria
 
 - [ ] A new `ledger` app exists and is in `INSTALLED_APPS`.
