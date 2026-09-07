@@ -66,6 +66,19 @@ Credentials and local build artifacts stay out of version control, and
 `SECRET_KEY` comes from the environment rather than a literal in
 `settings.py`. Background: `architecture.md` §11, §14.
 
+### Status
+
+**Done.** Repo-root `.gitignore` added (SQLite + `-journal`/`-wal`,
+`__pycache__/`, `*.py[cod]`, `.venv/`/`venv/`, `.env`, `.pytest_cache/`,
+`.DS_Store`); previously-committed `__pycache__` `.pyc` files removed
+from the index. `config/settings.py` now reads `SECRET_KEY` from
+`DJANGO_SECRET_KEY` and raises `ImproperlyConfigured` when it is unset or
+empty — no fallback — after a dependency-free `.env` autoloader (the
+recommended option) populates `os.environ` for both `manage.py` and
+pytest. `.env.example` is committed with an empty `DJANGO_SECRET_KEY=`
+and a generation command; `.env` is git-ignored. Covered by
+`tests/test_settings_secrets.py`; `uv run pytest` is green.
+
 ### Acceptance criteria
 
 - [ ] A repo-root `.gitignore` ignores at least: `*.sqlite3` (and
