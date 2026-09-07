@@ -1,7 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Case, IntegerField, When
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 
 from accounts.models import Profile
@@ -58,6 +60,18 @@ def _render_row(request, bounty, status=200):
     return render(
         request, "dashboard/_bounty_row.html", {"bounty": bounty}, status=status
     )
+
+
+def _fragment_with_balance(request, template, context, status=200):
+    """Row fragment + the out-of-band points-balance partial, so a
+    point-changing action updates the header with no full-page reload
+    (tasks.md #20). ``points_balance`` comes from the context processor.
+    """
+    html = render_to_string(template, context, request=request)
+    html += render_to_string(
+        "dashboard/_balance.html", {"oob": True}, request=request
+    )
+    return HttpResponse(html, status=status)
 
 
 @child_required
@@ -150,7 +164,10 @@ def approve_bounty(request, pk):
             )
     except InvalidTransition:
         return _render_review_row(request, bounty, status=409)
-    return _render_review_row(request, bounty)
+    # approve moves points -> refresh the header balance out of band (#20)
+    return _fragment_with_balance(
+        request, "dashboard/_review_row.html", {"bounty": bounty}
+    )
 
 
 @parent_required
@@ -203,7 +220,8 @@ def store(request):
 
 
 def _render_perk_row(request, perk, *, message="", status=200):
-    return render(
+    # Includes the OOB balance partial so the header stays current (#20).
+    return _fragment_with_balance(
         request,
         "dashboard/_perk_row.html",
         {
@@ -292,4 +310,7 @@ def fulfill_purchase(request, pk):
             )
     except PurchaseInvalidTransition:
         return _render_purchase_row(request, purchase, status=409)
-    return _render_purchase_row(request, purchase)
+    # fulfil moves points -> refresh the header balance out of band (#20)
+    return _fragment_with_balance(
+        request, "dashboard/_purchase_row.html", {"purchase": purchase}
+    )

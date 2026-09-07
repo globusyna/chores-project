@@ -1,0 +1,6 @@
+{% comment %}
+Points balance (tasks.md #20). Rendered in the header on full-page loads;
+the same element is re-sent with hx-swap-oob="true" on the tail of
+approve / purchase / fulfil responses so the header updates in place.
+{% endcomment %}
+<span id="points-balance"{% if oob %} hx-swap-oob="true"{% endif %}>{{ points_balance|default:"0" }} pts</span>

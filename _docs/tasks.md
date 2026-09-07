@@ -1193,6 +1193,18 @@ Show the signed-in user's point balance on every page and keep it live
 via HTMX out-of-band swaps after any action that changes it. Background:
 `architecture.md` §7, §10.
 
+### Status
+
+**Done.** `dashboard/templates/dashboard/_balance.html` renders
+`points_balance` in `id="points-balance"`, adding `hx-swap-oob="true"`
+when rendered with `oob=True`. `base.html` includes it in the header for
+authenticated users only. `accounts.context_processors.points_balance`
+(registered in settings) feeds full-page loads. The approve (#14),
+purchase (#18) and fulfil (#19) responses append the OOB partial via a
+`_fragment_with_balance` helper, so the header swaps with no reload.
+Covered by `tests/test_balance_header.py`; `uv run pytest` green (151
+passed).
+
 ### Acceptance criteria
 
 - [ ] A template partial (e.g. `dashboard/templates/dashboard/

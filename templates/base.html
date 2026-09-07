@@ -21,6 +21,7 @@ per-form wiring. Plain <form> posts still use their own {% csrf_token %}.
                 <a href="{% url 'dashboard:fulfilment_queue' %}">Fulfilment</a>
             {% endif %}
             <span>Signed in as {{ user.username }}</span>
+            {% include "dashboard/_balance.html" %}
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button type="submit">Log out</button>
