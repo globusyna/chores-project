@@ -1250,6 +1250,18 @@ Make the app usable out of the box: one command populates a demo board,
 perks, and a parent + child account. Background: task list intro (local
 dev / demo).
 
+### Status
+
+**Done.** `chores/management/commands/seed_dev.py` (`BaseCommand`):
+3 `ChoreTemplate`s, 3 `Perk`s, a `parent` (role PARENT) and `child`
+account, and 2 OPEN bounties — all via `get_or_create` on natural keys,
+so re-runs change nothing. Prints the two logins + passwords. Raises
+`CommandError` when `DEBUG=False`. Never writes `PointTransaction` rows
+or balances (they stay 0). New top-level `README.md` documents the
+quick start, tests, the dev-only seed command + credentials, and the
+cron commands. Covered by `tests/test_seed_dev.py` (`call_command`);
+`uv run pytest` green (155 passed).
+
 ### Acceptance criteria
 
 - [ ] A management command (e.g. `chores/management/commands/
