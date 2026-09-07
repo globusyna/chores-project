@@ -330,6 +330,16 @@ carries the usage snippet. Covered by `tests/test_permissions.py`;
 Define the recurring chores that repopulate the board each week.
 Background: `architecture.md` §3 (`chores` app), §4, §8.
 
+### Status
+
+**Done.** New `chores` app in `INSTALLED_APPS`. `ChoreTemplate` =
+`title` / `description` (blank) / `default_point_value`
+(`PositiveIntegerField` + `MinValueValidator(1)`) / `active`
+(default `True`); `__str__` → title, `Meta.ordering = ["title"]`.
+`ChoreTemplateAdmin` lists `title` / `default_point_value` / `active`
+with `active` list-editable. Migration `0001_initial`. Covered by
+`tests/test_chore_template.py`; `uv run pytest` green (43 passed).
+
 ### Acceptance criteria
 
 - [ ] A new `chores` app exists and is in `INSTALLED_APPS`.
