@@ -1,6 +1,8 @@
 {% comment %}
-Single bounty row/card (tasks.md #11). Stable DOM id so #12–#14 can
-target it for HTMX swaps. Display only — no action controls here.
+Single bounty row/card (tasks.md #11), re-rendered as an HTMX fragment by
+the claim/submit/review actions (#12–#14). Stable DOM id so those swaps
+can target it. Server-side role checks are the real authorization
+boundary — the buttons here are only a convenience.
 {% endcomment %}
 <li id="bounty-{{ bounty.pk }}" class="bounty-row" data-status="{{ bounty.status }}">
     <span class="bounty-title">{{ bounty.title }}</span>
@@ -8,5 +10,15 @@ target it for HTMX swaps. Display only — no action controls here.
     <span class="bounty-status">{{ bounty.get_status_display }}</span>
     {% if bounty.claimed_by %}
         <span class="bounty-claimant">Claimed by {{ bounty.claimed_by.username }}</span>
+    {% endif %}
+
+    {% if bounty.status == "OPEN" %}
+        <form class="bounty-action"
+              hx-post="{% url 'dashboard:claim_bounty' bounty.pk %}"
+              hx-target="#bounty-{{ bounty.pk }}"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+            <button type="submit">Claim</button>
+        </form>
     {% endif %}
 </li>

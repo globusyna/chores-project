@@ -75,14 +75,16 @@ def test_ordering_open_first_then_point_value_desc(client, user, django_user_mod
     assert body.index("OPEN-HIGH") < body.index("OPEN-LOW") < body.index("CLAIMED-HUGE")
 
 
-def test_no_action_controls_in_board_content(client, user):
+def test_board_view_adds_no_review_controls_of_its_own(client, user):
+    # #11 itself renders no actions; the claim control on OPEN rows is
+    # added by the shared row partial in #12. The board view still wires
+    # no approve/reject/submit logic.
     Bounty.objects.create(title="Tidy shelf", point_value=2)
     client.force_login(user)
 
     body = client.get(reverse("dashboard:board")).content.decode()
     main = body.split("<main>")[1].split("</main>")[0]
 
-    # display only: no claim/submit/review forms, buttons or HTMX here
-    assert "hx-post" not in main
-    assert "<form" not in main
-    assert "<button" not in main
+    assert "/submit/" not in main
+    assert "/approve/" not in main
+    assert "/reject/" not in main

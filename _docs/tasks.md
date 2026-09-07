@@ -709,6 +709,20 @@ Let a child claim an open bounty from the board, returning the updated
 row as an HTML fragment. Background: `architecture.md` §7, §8;
 `plan.md` §4.2 (two-hour window).
 
+### Status
+
+**Done.** `POST /board/<pk>/claim/` (`dashboard:claim_bounty`),
+`child_required` + `require_POST`, calls `Bounty.claim` inside
+`transaction.atomic()` with `select_for_update()` (one winner).
+Success → the `dashboard/_bounty_row.html` fragment (now carrying an
+`hx-post` Claim button on OPEN rows); not-a-child → 403; not OPEN → 409
++ fragment; missing → 404; GET → 405; anonymous → login redirect. HTMX
+script + `hx-headers` CSRF token added to `base.html` (documented
+there). #11's "no action controls" test was relaxed — the claim button
+now lives in the shared row partial; the board view still wires no
+submit/approve/reject. Covered by `tests/test_claim.py`; `uv run
+pytest` green (92 passed).
+
 ### Acceptance criteria
 
 - [ ] A POST endpoint (e.g. `/board/<pk>/claim/`), `@login_required`,
