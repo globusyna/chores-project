@@ -656,6 +656,17 @@ Any logged-in user can see the current list of bounties that aren't yet
 approved (open, claimed, pending review), display-only. Background:
 `architecture.md` §7.
 
+### Status
+
+**Done.** `@login_required` `dashboard.board` at `/board/`
+(`dashboard:board`) renders every non-`APPROVED` `Bounty` (title, point
+value, status, claimant when set) via `dashboard/_bounty_row.html` —
+`id="bounty-{{ pk }}"`, no action controls. Order: OPEN → CLAIMED →
+PENDING_REVIEW (`Case/When` rank), then `-point_value`, then `id`. Empty
+board shows a `#board-empty` message. Anonymous → login redirect. No
+model changes. Covered by `tests/test_board.py`; `uv run pytest` green
+(86 passed).
+
 ### Acceptance criteria
 
 - [ ] A `@login_required` view at a stable URL renders every `Bounty`

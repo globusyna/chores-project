@@ -1,0 +1,12 @@
+{% comment %}
+Single bounty row/card (tasks.md #11). Stable DOM id so #12–#14 can
+target it for HTMX swaps. Display only — no action controls here.
+{% endcomment %}
+<li id="bounty-{{ bounty.pk }}" class="bounty-row" data-status="{{ bounty.status }}">
+    <span class="bounty-title">{{ bounty.title }}</span>
+    <span class="bounty-points">{{ bounty.point_value }} pts</span>
+    <span class="bounty-status">{{ bounty.get_status_display }}</span>
+    {% if bounty.claimed_by %}
+        <span class="bounty-claimant">Claimed by {{ bounty.claimed_by.username }}</span>
+    {% endif %}
+</li>

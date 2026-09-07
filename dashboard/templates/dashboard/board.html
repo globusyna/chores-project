@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Bounty board{% endblock %}
+
+{% block content %}
+    <h1>Bounty board</h1>
+
+    {% if bounties %}
+        <ul id="bounty-list">
+            {% for bounty in bounties %}
+                {% include "dashboard/_bounty_row.html" %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p id="board-empty">No bounties on the board right now. Check back soon.</p>
+    {% endif %}
+{% endblock %}
