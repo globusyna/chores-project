@@ -388,6 +388,20 @@ model methods for each transition. This is the core state machine —
 `architecture.md` §4 (fields), §5 (lifecycle), §8 (claim expiry);
 `plan.md` §4.2–§4.3.
 
+### Status
+
+**Done.** `chores.Bounty` with all listed fields, distinct FK
+`related_name`s, `status` `TextChoices` (OPEN/CLAIMED/PENDING_REVIEW/
+APPROVED, default OPEN). `claim` / `submit` / `approve` / `reject` each
+guard their source state (and `submit` the claimant), mutate only their
+field set, and persist via `update_fields` — no caller `save()`. Invalid
+transitions raise `chores.exceptions.InvalidTransition` (per the open
+decision) and change nothing. `is_claim_expired` property; `__str__`;
+`Meta.ordering = ["-created_at", "-id"]`. `CLAIM_WINDOW =
+timedelta(hours=2)` module constant (for #12/#17). Migration
+`0002_bounty`. Covered by `tests/test_bounty.py`; `uv run pytest` green
+(62 passed).
+
 ### Acceptance criteria
 
 - [ ] `Bounty` model in `chores` with: `title`, `description`,
