@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtualenvs
+.venv/
+venv/
+
+# Django / SQLite
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+
+# Local environment / secrets
+.env
+
+# Tooling caches
+.pytest_cache/
+
+# macOS
+.DS_Store
