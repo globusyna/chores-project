@@ -20,5 +20,13 @@ boundary — the buttons here are only a convenience.
             {% csrf_token %}
             <button type="submit">Claim</button>
         </form>
+    {% elif bounty.status == "CLAIMED" and bounty.claimed_by_id == request.user.id %}
+        <form class="bounty-action"
+              hx-post="{% url 'dashboard:submit_bounty' bounty.pk %}"
+              hx-target="#bounty-{{ bounty.pk }}"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+            <button type="submit">Mark done</button>
+        </form>
     {% endif %}
 </li>

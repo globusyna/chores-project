@@ -68,3 +68,48 @@ def claim_bounty(request, pk):
     except InvalidTransition:
         return _render_row(request, bounty, status=409)
     return _render_row(request, bounty)
+
+
+def _revert_expired_claim(bounty):
+    """Return an expired-but-unswept claim to the board.
+
+    TODO(#17): replace with the shared ``Bounty.objects.release_expired()``
+    manager method once the claim-expiry sweep lands.
+    """
+    bounty.status = Bounty.Status.OPEN
+    bounty.claimed_by = None
+    bounty.claimed_at = None
+    bounty.claim_expires_at = None
+    bounty.save(
+        update_fields=["status", "claimed_by", "claimed_at", "claim_expires_at"]
+    )
+
+
+@login_required
+@require_POST
+def submit_bounty(request, pk):
+    """Claimant marks their chore done and ready for review (#13).
+
+    403 if the bounty is not claimed by this user, 409 if it is not in
+    CLAIMED, 404 if missing, 405 on GET. If the claim window has already
+    passed, the row is reverted to OPEN inline and the submit is rejected.
+    """
+    bounty = get_object_or_404(Bounty, pk=pk)
+
+    if bounty.is_claim_expired:
+        _revert_expired_claim(bounty)
+        return _render_row(request, bounty, status=409)
+
+    if (
+        bounty.status == Bounty.Status.CLAIMED
+        and bounty.claimed_by_id != request.user.id
+    ):
+        return _render_row(request, bounty, status=403)
+
+    try:
+        with transaction.atomic():
+            bounty = Bounty.objects.select_for_update().get(pk=pk)
+            bounty.submit(request.user)
+    except InvalidTransition:
+        return _render_row(request, bounty, status=409)
+    return _render_row(request, bounty)

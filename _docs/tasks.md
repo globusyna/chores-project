@@ -769,6 +769,19 @@ Let a child mark their claimed chore done and ready for review,
 returning the updated row fragment. Background: `architecture.md` §5,
 §7.
 
+### Status
+
+**Done.** `POST /board/<pk>/submit/` (`dashboard:submit_bounty`),
+`@login_required` + `require_POST`, calls `Bounty.submit` inside a
+`select_for_update` transaction. Success → row fragment
+(PENDING_REVIEW); not the claimant → 403; not CLAIMED → 409; missing →
+404; GET → 405; anonymous → login redirect. An expired-but-unswept
+claim is reverted to OPEN inline (`_revert_expired_claim` helper, with a
+`TODO(#17)` to swap for the shared `Bounty.objects.release_expired()`)
+and the submit is rejected 409. Row partial gains a "Mark done" button
+for the claimant on CLAIMED rows. Covered by `tests/test_submit.py`;
+`uv run pytest` green (100 passed).
+
 ### Acceptance criteria
 
 - [ ] A POST endpoint (e.g. `/board/<pk>/submit/`), `@login_required`,
