@@ -1,0 +1,19 @@
+[project]
+name = "chores-project"
+version = "0.1.0"
+description = "Household Chore Bounty Board"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-django>=4.9",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
