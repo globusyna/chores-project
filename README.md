@@ -1,5 +1,10 @@
 # Household Chore Bounty Board
 
+> **Status: MVP draft.** This is a v1 slice built as a template/starting
+> point — not a finished product. Expect rough edges, placeholder UI (no
+> styling yet), and gaps called out in `_docs/`. Phase 2 (Discord OAuth +
+> notifications) and other deferred items are not built.
+
 A small server-rendered **Django + HTMX** app for running a household chore
 economy:
 
