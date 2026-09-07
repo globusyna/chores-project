@@ -19,5 +19,8 @@ from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Built-in login/logout views (tasks.md #3): /accounts/login/,
+    # /accounts/logout/, names `login` / `logout`. No signup route.
+    path('accounts/', include('django.contrib.auth.urls')),
     path('', include('dashboard.urls')),
 ]

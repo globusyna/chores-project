@@ -131,6 +131,17 @@ A user with an existing account can sign in and sign out. No
 self-service signup — accounts are created by a parent
 (`architecture.md` §6, `plan.md` §3).
 
+### Status
+
+**Done.** `django.contrib.auth.urls` mounted at `/accounts/`
+(`login` / `logout` names). `BASE_DIR / "templates"` added to
+`TEMPLATES[0]["DIRS"]` with shared `base.html` and
+`registration/login.html`; the base header shows `username` + a POST
+logout form when signed in, a login link when not. `LOGIN_URL`,
+`LOGIN_REDIRECT_URL`, `LOGOUT_REDIRECT_URL` set (`next` round-trips).
+Logout is POST-only (GET → 405). Covered by `tests/test_auth.py`;
+`uv run pytest` is green (26 passed).
+
 ### Acceptance criteria
 
 - [ ] Django's built-in auth login/logout views are routed (e.g.
