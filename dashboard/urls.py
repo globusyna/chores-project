@@ -7,6 +7,7 @@ app_name = "dashboard"
 urlpatterns = [
     path("", views.home, name="home"),
     path("board/", views.board, name="board"),
+    path("board/new/", views.create_bounty, name="create_bounty"),
     path("board/<int:pk>/claim/", views.claim_bounty, name="claim_bounty"),
     path("board/<int:pk>/submit/", views.submit_bounty, name="submit_bounty"),
     path("review/", views.review_queue, name="review_queue"),

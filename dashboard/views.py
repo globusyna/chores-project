@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Case, IntegerField, When
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from accounts.permissions import child_required, parent_required
@@ -9,6 +9,8 @@ from chores.exceptions import InvalidTransition
 from chores.models import Bounty
 from ledger.models import PointTransaction
 from ledger.services import record_transaction
+
+from .forms import BountyCreateForm
 
 
 def home(request):
@@ -177,3 +179,20 @@ def reject_bounty(request, pk):
     except InvalidTransition:
         return _render_review_row(request, bounty, status=409)
     return _render_review_row(request, bounty)
+
+
+@parent_required
+def create_bounty(request):
+    """Parent posts a one-off OPEN bounty, then lands back on the board (#15)."""
+    if request.method == "POST":
+        form = BountyCreateForm(request.POST)
+        if form.is_valid():
+            bounty = form.save(commit=False)
+            bounty.status = Bounty.Status.OPEN
+            bounty.created_by = request.user
+            bounty.source_template = None
+            bounty.save()
+            return redirect("dashboard:board")
+    else:
+        form = BountyCreateForm()
+    return render(request, "dashboard/bounty_form.html", {"form": form})

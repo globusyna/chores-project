@@ -882,6 +882,19 @@ Let a parent post a one-off chore outside the weekly template cycle.
 Background: `plan.md` §4.1; `architecture.md` §4 (`created_by`,
 `source_template` null for ad-hoc).
 
+### Status
+
+**Done.** `parent_required` `dashboard.create_bounty` at `/board/new/`
+with `dashboard.forms.BountyCreateForm` (`ModelForm` over `title` /
+`description` / `point_value`; `point_value` is an `IntegerField(min_value=1)`).
+GET renders `dashboard/bounty_form.html`; valid POST creates a `Bounty`
+(status OPEN, `created_by=request.user`, `source_template=None`) then
+redirects to `dashboard:board`; invalid POST (blank title, `point_value
+< 1`) re-renders with errors and creates nothing. Child GET/POST → 403,
+nothing created; anonymous → login redirect. Parent-only "New bounty"
+link in `base.html`. Covered by `tests/test_create_bounty.py`; `uv run
+pytest` green (120 passed).
+
 ### Acceptance criteria
 
 - [ ] A `parent_required` view with a `ModelForm` over `title`,

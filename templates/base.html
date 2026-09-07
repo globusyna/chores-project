@@ -15,6 +15,7 @@ per-form wiring. Plain <form> posts still use their own {% csrf_token %}.
         {% if user.is_authenticated %}
             <a href="{% url 'dashboard:board' %}">Board</a>
             {% if user.profile.role == "PARENT" %}
+                <a href="{% url 'dashboard:create_bounty' %}">New bounty</a>
                 <a href="{% url 'dashboard:review_queue' %}">Review queue</a>
             {% endif %}
             <span>Signed in as {{ user.username }}</span>
