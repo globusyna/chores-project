@@ -1062,6 +1062,20 @@ stopgap is removed). No migration (manager-only change). Covered by
 Let a user browse active perks and spend points to buy one, creating a
 locked purchase. Background: `architecture.md` §5, §10, §14.
 
+### Status
+
+**Done.** `@login_required` `dashboard.store` at `/store/` lists
+`active=True` perks (title, description, cost) + the viewer's
+`points_balance`, via `dashboard/_perk_row.html`. `POST
+/store/<pk>/buy/` (`require_POST`): under `select_for_update` on the
+`Profile`, if `points_balance >= point_cost` creates a LOCKED
+`Purchase` (no ledger write — debit is #19) and returns the row
+fragment; otherwise returns the fragment with a "Not enough points"
+message and creates nothing. Inactive/missing perk → 404; GET → 405;
+anonymous → login redirect. Per the open decision, LOCKED does not
+reduce the shown balance. "Store" link added to `base.html`. Covered by
+`tests/test_store.py`; `uv run pytest` green (137 passed).
+
 ### Acceptance criteria
 
 - [ ] A `@login_required` view lists `Perk` rows with `active=True`

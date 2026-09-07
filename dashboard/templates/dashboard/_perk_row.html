@@ -1,0 +1,21 @@
+{% comment %}
+One perk in the store (tasks.md #18), re-rendered as an HTMX fragment by
+the buy action. Stable DOM id for the swap.
+{% endcomment %}
+<li id="perk-{{ perk.pk }}" class="perk-row">
+    <span class="perk-title">{{ perk.title }}</span>
+    <span class="perk-description">{{ perk.description }}</span>
+    <span class="perk-cost">{{ perk.point_cost }} pts</span>
+
+    <form class="perk-action"
+          hx-post="{% url 'dashboard:buy_perk' perk.pk %}"
+          hx-target="#perk-{{ perk.pk }}"
+          hx-swap="outerHTML">
+        {% csrf_token %}
+        <button type="submit">Buy</button>
+    </form>
+
+    {% if message %}
+        <span class="perk-message">{{ message }}</span>
+    {% endif %}
+</li>

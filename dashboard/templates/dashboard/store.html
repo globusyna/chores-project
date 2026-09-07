@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Perk store{% endblock %}
+
+{% block content %}
+    <h1>Perk store</h1>
+    <p id="store-balance">You have {{ balance }} points.</p>
+
+    {% if perks %}
+        <ul id="perk-list">
+            {% for perk in perks %}
+                {% include "dashboard/_perk_row.html" %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p id="store-empty">No perks available right now.</p>
+    {% endif %}
+{% endblock %}

@@ -4,11 +4,13 @@ from django.db.models import Case, IntegerField, When
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from accounts.models import Profile
 from accounts.permissions import child_required, parent_required
 from chores.exceptions import InvalidTransition
 from chores.models import Bounty
 from ledger.models import PointTransaction
 from ledger.services import record_transaction
+from store.models import Perk, Purchase
 
 from .forms import BountyCreateForm
 
@@ -184,3 +186,61 @@ def create_bounty(request):
     else:
         form = BountyCreateForm()
     return render(request, "dashboard/bounty_form.html", {"form": form})
+
+
+@login_required
+def store(request):
+    """Browse active perks alongside the viewer's point balance (#18)."""
+    return render(
+        request,
+        "dashboard/store.html",
+        {
+            "perks": Perk.objects.filter(active=True),
+            "balance": request.user.profile.points_balance,
+        },
+    )
+
+
+def _render_perk_row(request, perk, *, message="", status=200):
+    return render(
+        request,
+        "dashboard/_perk_row.html",
+        {
+            "perk": perk,
+            "message": message,
+            "balance": request.user.profile.points_balance,
+        },
+        status=status,
+    )
+
+
+@login_required
+@require_POST
+def buy_perk(request, pk):
+    """Spend points on a perk, creating a LOCKED purchase (#18).
+
+    No ledger write here -- ``points_balance`` is only debited at
+    fulfilment (#19). The balance check and the insert happen under
+    ``select_for_update`` on the profile so two racing buys can't both
+    pass a balance that only covers one.
+    """
+    perk = get_object_or_404(Perk, pk=pk, active=True)
+
+    with transaction.atomic():
+        profile = Profile.objects.select_for_update().get(user=request.user)
+        if profile.points_balance < perk.point_cost:
+            return _render_perk_row(
+                request,
+                perk,
+                message=(
+                    f"Not enough points — {perk.title} costs {perk.point_cost}, "
+                    f"you have {profile.points_balance}."
+                ),
+            )
+        Purchase.objects.create(
+            user=request.user, perk=perk, status=Purchase.Status.LOCKED
+        )
+
+    return _render_perk_row(
+        request, perk, message="Purchased — waiting for a parent to hand it over."
+    )

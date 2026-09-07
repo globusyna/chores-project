@@ -13,4 +13,6 @@ urlpatterns = [
     path("review/", views.review_queue, name="review_queue"),
     path("review/<int:pk>/approve/", views.approve_bounty, name="approve_bounty"),
     path("review/<int:pk>/reject/", views.reject_bounty, name="reject_bounty"),
+    path("store/", views.store, name="store"),
+    path("store/<int:pk>/buy/", views.buy_perk, name="buy_perk"),
 ]
