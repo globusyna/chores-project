@@ -15,4 +15,10 @@ urlpatterns = [
     path("review/<int:pk>/reject/", views.reject_bounty, name="reject_bounty"),
     path("store/", views.store, name="store"),
     path("store/<int:pk>/buy/", views.buy_perk, name="buy_perk"),
+    path("fulfilment/", views.fulfilment_queue, name="fulfilment_queue"),
+    path(
+        "fulfilment/<int:pk>/fulfill/",
+        views.fulfill_purchase,
+        name="fulfill_purchase",
+    ),
 ]

@@ -10,6 +10,7 @@ from chores.exceptions import InvalidTransition
 from chores.models import Bounty
 from ledger.models import PointTransaction
 from ledger.services import record_transaction
+from store.exceptions import InvalidTransition as PurchaseInvalidTransition
 from store.models import Perk, Purchase
 
 from .forms import BountyCreateForm
@@ -244,3 +245,51 @@ def buy_perk(request, pk):
     return _render_perk_row(
         request, perk, message="Purchased — waiting for a parent to hand it over."
     )
+
+
+def _render_purchase_row(request, purchase, status=200):
+    return render(
+        request,
+        "dashboard/_purchase_row.html",
+        {"purchase": purchase},
+        status=status,
+    )
+
+
+@parent_required
+def fulfilment_queue(request):
+    """Parent's queue of LOCKED purchases awaiting hand-over (#19)."""
+    purchases = (
+        Purchase.objects.filter(status=Purchase.Status.LOCKED)
+        .select_related("perk", "user")
+        .order_by("purchased_at", "id")
+    )
+    return render(
+        request, "dashboard/fulfilment_queue.html", {"purchases": purchases}
+    )
+
+
+@parent_required
+@require_POST
+def fulfill_purchase(request, pk):
+    """Mark a purchased perk delivered and finalise the point spend (#19).
+
+    The state flip and the debit happen in one atomic block; the
+    ``fulfill()`` state check inside it means a double submit debits once.
+    The balance may go negative -- the reward is already handed over
+    (open decision).
+    """
+    get_object_or_404(Purchase, pk=pk)
+    try:
+        with transaction.atomic():
+            purchase = Purchase.objects.select_for_update().get(pk=pk)
+            purchase.fulfill(request.user)
+            record_transaction(
+                purchase.user,
+                -purchase.perk.point_cost,
+                PointTransaction.Reason.PERK_DEBIT,
+                related_purchase=purchase,
+            )
+    except PurchaseInvalidTransition:
+        return _render_purchase_row(request, purchase, status=409)
+    return _render_purchase_row(request, purchase)

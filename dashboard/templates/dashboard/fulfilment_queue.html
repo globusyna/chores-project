@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Fulfilment queue{% endblock %}
+
+{% block content %}
+    <h1>Fulfilment queue</h1>
+
+    {% if purchases %}
+        <ul id="purchase-list">
+            {% for purchase in purchases %}
+                {% include "dashboard/_purchase_row.html" %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p id="fulfilment-empty">No purchases waiting to be handed over.</p>
+    {% endif %}
+{% endblock %}

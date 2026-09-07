@@ -1129,6 +1129,20 @@ reduce the shown balance. "Store" link added to `base.html`. Covered by
 Let a parent mark a purchased perk as delivered and finalise the point
 spend. Background: `architecture.md` §5, §10.
 
+### Status
+
+**Done.** `parent_required` `dashboard.fulfilment_queue` at
+`/fulfilment/` lists `LOCKED` purchases (buyer, perk, cost,
+`purchased_at`) via `dashboard/_purchase_row.html`. `POST
+/fulfilment/<pk>/fulfill/` (`require_POST`): `Purchase.fulfill` +
+`record_transaction(user, -point_cost, PERK_DEBIT,
+related_purchase=…)` in one `transaction.atomic()` behind
+`select_for_update` — double submit → 409, debit once. Child → 403,
+nothing changes; GET → 405; missing → 404; anonymous → redirect. Balance
+may go negative (open decision). Parent-only "Fulfilment" link in
+`base.html`. Covered by `tests/test_fulfilment.py`; `uv run pytest`
+green (146 passed).
+
 ### Acceptance criteria
 
 - [ ] A `parent_required` view lists every `Purchase` with

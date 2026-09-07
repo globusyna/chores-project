@@ -1,0 +1,22 @@
+{% comment %}
+One row in the parent fulfilment queue (tasks.md #19), re-rendered as an
+HTMX fragment by the fulfil action. Stable DOM id for the swap.
+{% endcomment %}
+<li id="purchase-{{ purchase.pk }}" class="purchase-row" data-status="{{ purchase.status }}">
+    <span class="purchase-buyer">{{ purchase.user.username }}</span>
+    <span class="purchase-perk">{{ purchase.perk.title }}</span>
+    <span class="purchase-cost">{{ purchase.perk.point_cost }} pts</span>
+    <span class="purchase-when">bought {{ purchase.purchased_at|date:"Y-m-d H:i" }}</span>
+
+    {% if purchase.status == "LOCKED" %}
+        <form class="purchase-action"
+              hx-post="{% url 'dashboard:fulfill_purchase' purchase.pk %}"
+              hx-target="#purchase-{{ purchase.pk }}"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+            <button type="submit">Mark handed over</button>
+        </form>
+    {% else %}
+        <span class="purchase-outcome">{{ purchase.get_status_display }}</span>
+    {% endif %}
+</li>
