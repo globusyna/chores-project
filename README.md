@@ -23,7 +23,7 @@ account's balance is a cached mirror of that ledger.
 
 ```sh
 uv sync                                   # install dependencies
-cp .env.example .env                       # then set DJANGO_SECRET_KEY (the file shows how to generate one)
+cp .env.example .env                       # then set DJANGO_SECRET_KEY (the file shows how to generate one) DONE
 uv run python manage.py migrate            # create the SQLite database
 uv run python manage.py runserver          # http://127.0.0.1:8000/
 ```
@@ -50,10 +50,14 @@ uv run python manage.py seed_dev
 `seed_dev` is **dev only** (it errors out when `DEBUG=False`) and is safe
 to run repeatedly. It seeds these logins:
 
-| Role   | Username | Password          |
-|--------|----------|-------------------|
-| Parent | `parent` | `parent-password` |
-| Child  | `child`  | `child-password`  |
+| Role   | Username    | Password          |
+|--------|-------------|-------------------|
+| Parent | `parent`    | `parent-password` |
+| Child  | `child`     | `child-password`  |
+| Child  | `test_user` | `test_password`   |
+
+`test_user` is a plain account for poking at the login flow; promote it in
+the admin if you need parent access.
 
 Balances start at 0; the command never writes ledger rows directly.
 

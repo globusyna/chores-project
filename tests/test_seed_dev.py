@@ -33,12 +33,15 @@ def test_seed_creates_expected_objects(settings):
 
     parent = User.objects.get(username="parent")
     child = User.objects.get(username="child")
+    test_user = User.objects.get(username="test_user")
     assert parent.profile.role == Profile.Role.PARENT
     assert child.profile.role == Profile.Role.CHILD
+    assert test_user.profile.role == Profile.Role.CHILD
     assert parent.check_password("parent-password")
     assert child.check_password("child-password")
+    assert test_user.check_password("test_password")
 
-    assert "parent" in output and "child" in output
+    assert "parent" in output and "child" in output and "test_user" in output
 
 
 def test_seed_is_idempotent(settings):
@@ -47,7 +50,12 @@ def test_seed_is_idempotent(settings):
     _run()
     _run()
 
-    assert User.objects.filter(username__in=["parent", "child"]).count() == 2
+    assert (
+        User.objects.filter(
+            username__in=["parent", "child", "test_user"]
+        ).count()
+        == 3
+    )
     assert ChoreTemplate.objects.count() == 3
     assert Perk.objects.count() == 3
     assert Bounty.objects.count() == 2
@@ -72,3 +80,18 @@ def test_seed_refuses_to_run_with_debug_false(settings):
         _run()
 
     assert User.objects.filter(username="parent").count() == 0
+
+
+def test_seeded_test_user_can_log_in(settings, client):
+    settings.DEBUG = True
+    _run()
+
+    response = client.post(
+        "/accounts/login/",
+        {"username": "test_user", "password": "test_password"},
+    )
+
+    assert response.status_code == 302
+    assert client.session.get("_auth_user_id") == str(
+        User.objects.get(username="test_user").pk
+    )

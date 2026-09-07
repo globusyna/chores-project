@@ -1,10 +1,10 @@
 """Local dev / demo seed data (tasks.md #21).
 
-Creates a handful of chore templates and perks, a parent account and a
-child account, and a couple of OPEN bounties so the board isn't empty.
-Idempotent -- every object is created with ``get_or_create`` on a natural
-key, so running it again changes nothing. Dev only: it refuses to run
-with ``DEBUG=False``.
+Creates a handful of chore templates and perks, a parent account, a child
+account, a plain ``test_user`` account (for poking at the login flow), and
+a couple of OPEN bounties so the board isn't empty. Idempotent -- every
+object is created with ``get_or_create`` on a natural key, so running it
+again changes nothing. Dev only: it refuses to run with ``DEBUG=False``.
 """
 
 from django.conf import settings
@@ -18,6 +18,9 @@ from store.models import Perk
 
 PARENT = ("parent", "parent-password")
 CHILD = ("child", "child-password")
+# A plain account for exercising the login flow. Child role by default;
+# promote it in the admin if you need parent access.
+TEST = ("test_user", "test_password")
 
 TEMPLATES = [
     {
@@ -50,8 +53,8 @@ PERKS = [
 
 class Command(BaseCommand):
     help = (
-        "Populate a demo board, perks and a parent + child account. "
-        "DEV ONLY -- refuses to run with DEBUG=False."
+        "Populate a demo board, perks and parent / child / test_user "
+        "accounts. DEV ONLY -- refuses to run with DEBUG=False."
     )
 
     def handle(self, *args, **options):
@@ -72,6 +75,7 @@ class Command(BaseCommand):
 
             parent = self._account(User, PARENT, Profile.Role.PARENT)
             self._account(User, CHILD, Profile.Role.CHILD)
+            self._account(User, TEST, Profile.Role.CHILD)
 
             # Leave the board populated without piling up on re-runs.
             for template in ChoreTemplate.objects.filter(active=True)[:2]:
@@ -87,8 +91,9 @@ class Command(BaseCommand):
                 )
 
         self.stdout.write(self.style.SUCCESS("Seeded dev data."))
-        self.stdout.write(f"  parent login: {PARENT[0]} / {PARENT[1]}")
-        self.stdout.write(f"  child login:  {CHILD[0]} / {CHILD[1]}")
+        self.stdout.write(f"  parent login:    {PARENT[0]} / {PARENT[1]}")
+        self.stdout.write(f"  child login:     {CHILD[0]} / {CHILD[1]}")
+        self.stdout.write(f"  test_user login: {TEST[0]} / {TEST[1]}")
 
     @staticmethod
     def _account(User, credentials, role):
