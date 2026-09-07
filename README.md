@@ -35,6 +35,28 @@ both pick it up.
 Create an admin user for the Django admin (`/admin/`) with
 `uv run python manage.py createsuperuser`.
 
+## Seeing the board
+
+`http://127.0.0.1:8000/` is just a placeholder page ("the board is being
+built"). The real bounty board lives at **`/board/`** and needs a login.
+
+1. Seed some data and accounts (see [Development mode](#development-mode)):
+
+   ```sh
+   uv run python manage.py seed_dev
+   ```
+
+2. Open **`http://127.0.0.1:8000/board/`** — you'll be redirected to the
+   login page.
+3. Log in as `test_user` / `test_password` (or `child` / `child-password`,
+   or `parent` / `parent-password`).
+4. Use the header nav: **Board** and **Store** for everyone; **New
+   bounty**, **Review queue** and **Fulfilment** also show for `parent`.
+
+Without `seed_dev`, `/board/` renders an empty state — add chores as
+`parent` via **New bounty**, or run `reset_weekly_board` after creating
+templates in `/admin/`.
+
 ## Development mode
 
 `DEBUG` is `True` by default in `config/settings.py`, so `runserver` gives
