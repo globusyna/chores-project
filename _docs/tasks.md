@@ -193,6 +193,19 @@ points (#10). New profiles start as `CHILD`; a parent is promoted by hand
 in the Django admin. Draws on `plan.md` §3 and `architecture.md` §3,
 §4, §6.
 
+### Status
+
+**Done.** New `accounts` app in `INSTALLED_APPS`. `Profile` =
+`OneToOneField(AUTH_USER_MODEL, CASCADE, related_name="profile")` +
+`role` (`TextChoices` PARENT/CHILD, default CHILD); `__str__` →
+`"alice (Child)"`. A `post_save` receiver registered in
+`AccountsConfig.ready()` gives every new user one CHILD profile
+(`created`-guarded + `get_or_create`, so re-save neither duplicates nor
+resets). `ProfileAdmin` (list `user`/`role`, `role` editable) plus a
+`ProfileInline` on the User admin; migrations `0001_initial` +
+`0002_backfill_profiles` (data). Covered by `tests/test_profile.py`;
+`uv run pytest` green (33 passed).
+
 ### Acceptance criteria
 
 - [ ] A new `accounts` app exists and is in `INSTALLED_APPS`
