@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Review queue{% endblock %}
+
+{% block content %}
+    <h1>Review queue</h1>
+
+    {% if bounties %}
+        <ul id="review-list">
+            {% for bounty in bounties %}
+                {% include "dashboard/_review_row.html" %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p id="review-empty">Nothing waiting for review.</p>
+    {% endif %}
+{% endblock %}

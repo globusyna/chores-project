@@ -13,6 +13,10 @@ per-form wiring. Plain <form> posts still use their own {% csrf_token %}.
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
     <header>
         {% if user.is_authenticated %}
+            <a href="{% url 'dashboard:board' %}">Board</a>
+            {% if user.profile.role == "PARENT" %}
+                <a href="{% url 'dashboard:review_queue' %}">Review queue</a>
+            {% endif %}
             <span>Signed in as {{ user.username }}</span>
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}

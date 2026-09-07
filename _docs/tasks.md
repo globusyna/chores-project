@@ -821,6 +821,21 @@ for the claimant on CLAIMED rows. Covered by `tests/test_submit.py`;
 Let a parent approve or reject a submitted chore; approving awards the
 point value to the claimant. Background: `architecture.md` §5, §7, §10.
 
+### Status
+
+**Done.** `parent_required` `dashboard.review_queue` at `/review/` lists
+PENDING_REVIEW bounties (title, claimant, points, `submitted_at`) via
+`dashboard/_review_row.html`. `POST /review/<pk>/approve/`:
+`Bounty.approve` + `record_transaction(claimed_by, +point_value,
+BOUNTY_AWARD, related_bounty=…)` in one `transaction.atomic()` behind
+`select_for_update` — the `approve()` state check means a double submit
+awards once (2nd → 409). `POST /review/<pk>/reject/`:
+`Bounty.reject(notes=<POST 'notes'>)` → CLAIMED, claim fields/timer
+untouched, no ledger row. Child → 403; non-PENDING → 409; GET → 405;
+missing → 404; anonymous → redirect. Parent-only "Review queue" link
+added to `base.html`. OOB balance snippet left for #20. Covered by
+`tests/test_review.py`; `uv run pytest` green (113 passed).
+
 ### Acceptance criteria
 
 - [ ] A `parent_required` (#5) view lists every `PENDING_REVIEW` bounty

@@ -1,0 +1,30 @@
+{% comment %}
+One row in the parent review queue (tasks.md #14), re-rendered as an HTMX
+fragment by approve / reject. Stable DOM id for the swap.
+{% endcomment %}
+<li id="review-bounty-{{ bounty.pk }}" class="review-row" data-status="{{ bounty.status }}">
+    <span class="review-title">{{ bounty.title }}</span>
+    <span class="review-claimant">{{ bounty.claimed_by.username }}</span>
+    <span class="review-points">{{ bounty.point_value }} pts</span>
+    <span class="review-submitted">submitted {{ bounty.submitted_at|date:"Y-m-d H:i" }}</span>
+
+    {% if bounty.status == "PENDING_REVIEW" %}
+        <form class="review-action"
+              hx-post="{% url 'dashboard:approve_bounty' bounty.pk %}"
+              hx-target="#review-bounty-{{ bounty.pk }}"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+            <button type="submit">Approve</button>
+        </form>
+        <form class="review-action"
+              hx-post="{% url 'dashboard:reject_bounty' bounty.pk %}"
+              hx-target="#review-bounty-{{ bounty.pk }}"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+            <input type="text" name="notes" placeholder="What needs redoing? (optional)">
+            <button type="submit">Reject</button>
+        </form>
+    {% else %}
+        <span class="review-outcome">{{ bounty.get_status_display }}</span>
+    {% endif %}
+</li>

@@ -4,9 +4,11 @@ from django.db.models import Case, IntegerField, When
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 
-from accounts.permissions import child_required
+from accounts.permissions import child_required, parent_required
 from chores.exceptions import InvalidTransition
 from chores.models import Bounty
+from ledger.models import PointTransaction
+from ledger.services import record_transaction
 
 
 def home(request):
@@ -113,3 +115,65 @@ def submit_bounty(request, pk):
     except InvalidTransition:
         return _render_row(request, bounty, status=409)
     return _render_row(request, bounty)
+
+
+def _render_review_row(request, bounty, status=200):
+    return render(
+        request, "dashboard/_review_row.html", {"bounty": bounty}, status=status
+    )
+
+
+@parent_required
+def review_queue(request):
+    """Parent's queue of chores awaiting review (#14)."""
+    bounties = (
+        Bounty.objects.filter(status=Bounty.Status.PENDING_REVIEW)
+        .select_related("claimed_by")
+        .order_by("submitted_at", "id")
+    )
+    return render(request, "dashboard/review_queue.html", {"bounties": bounties})
+
+
+@parent_required
+@require_POST
+def approve_bounty(request, pk):
+    """Approve a submitted chore and award its points to the claimant (#14).
+
+    The state flip and the point award happen in one atomic block; the
+    ``approve()`` state check inside it means a double submit awards once.
+    """
+    get_object_or_404(Bounty, pk=pk)
+    try:
+        with transaction.atomic():
+            bounty = Bounty.objects.select_for_update().get(pk=pk)
+            recipient = bounty.claimed_by
+            award = bounty.point_value
+            bounty.approve(request.user)
+            record_transaction(
+                recipient,
+                award,
+                PointTransaction.Reason.BOUNTY_AWARD,
+                related_bounty=bounty,
+            )
+    except InvalidTransition:
+        return _render_review_row(request, bounty, status=409)
+    return _render_review_row(request, bounty)
+
+
+@parent_required
+@require_POST
+def reject_bounty(request, pk):
+    """Send a submitted chore back to the claimant as a do-over (#14).
+
+    Back to CLAIMED with the claim fields and timer untouched; no ledger
+    row.
+    """
+    get_object_or_404(Bounty, pk=pk)
+    notes = request.POST.get("notes", "")
+    try:
+        with transaction.atomic():
+            bounty = Bounty.objects.select_for_update().get(pk=pk)
+            bounty.reject(request.user, notes=notes)
+    except InvalidTransition:
+        return _render_review_row(request, bounty, status=409)
+    return _render_review_row(request, bounty)
