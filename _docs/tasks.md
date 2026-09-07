@@ -524,6 +524,18 @@ by `tests/test_perk.py`; `uv run pytest` green (66 passed).
 Represent one perk purchase and its fulfilment workflow. Background:
 `architecture.md` §4, §5 (`LOCKED → FULFILLED`), §10.
 
+### Status
+
+**Done.** `store.Purchase`: `perk` FK `PROTECT` (per the open decision),
+`user` FK, `status` `TextChoices` LOCKED/FULFILLED (default LOCKED),
+`purchased_at` (`default=timezone.now`), `fulfilled_by` (null,
+`related_name="fulfilled_purchases"`), `fulfilled_at` (null). `fulfill()`
+guards `LOCKED`, sets the three fields + status via `update_fields`,
+touches no points; a second call raises `store.exceptions.InvalidTransition`
+and changes nothing. `__str__`; `Meta.ordering = ["-purchased_at"]`;
+`PurchaseAdmin`. Migration `0002_purchase`. Covered by
+`tests/test_purchase.py`; `uv run pytest` green (72 passed).
+
 ### Acceptance criteria
 
 - [ ] `Purchase` model in `store`: `perk` (FK `Perk`, `on_delete=PROTECT`
